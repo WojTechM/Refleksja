@@ -2,7 +2,8 @@
 
 ## O repozytorium
 W tym repozytorium opisałem podstawy teoretyczne oraz praktyczne zastosowania mechanizmu refleksji w języku Java.
-Staram się, by notatki te były *Junior Software Developer friendly*, więc zacząłem od najbardziej podstawowych informacji, by później, krok po kroku, dojść do tych faktycznie ciekawych. :)
+Staram się, by notatki te były *Junior Software Developer friendly*, więc zacząłem od najbardziej podstawowych 
+informacji, by później, krok po kroku, dojść do tych faktycznie ciekawych. :)
 
 ## 1. Mechanizm Refleksji
 Mechanizm refleksji to proces, dzięki któremu program komupterowy może podglądać, analizować i modyfikować kod źródłowy w
@@ -19,6 +20,7 @@ ich nazwy).
 Jak zrobić to w praktyce? Mamy klasę "Sokrates" w pakiecie "com.github.wojtechm.refleksja.rozdzial_02". Sokrates ma 2
 metody - publiczną i prywatną. Metody te nie są statyczne, więc aby je wywołać, musimy stworzyć nową instancję klasy
 Sokrates.
+### 2.1. Tworzenie nowej instancji
 ```jshelllanguage
 public static void main(String[] args) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
     Class<?> klasaSokratesa = Class.forName("com.github.wojtechm.refleksja.rozdzial_02.Sokrates");
@@ -53,3 +55,54 @@ A skoro o omawianiu wyjątków mowa:
     Dokładniej opiszę ten precedens w jednym z późniejszych rozdziałów.
 * ***InvocationTargetException*** zgłaszany jest, gdy konstruktor który wywołujemy rzuci wyjątek.
 * ***InstantiationException*** zgłaszany jest, gdy próbujemy stworzyć instancję klasy abstrakcyjnej.
+
+### 2.2. Odnoszenie się do metod, oraz ich wywoływanie.
+Mamy już klasę oraz jej instancję. Kolejnym krokiem jest wyciągnięcie informacji o metodach. Najbardziej oczywistym będzie
+użycie metody *Class.getMethods()* na naszej klasie Sokratesa.
+```jshelllanguage
+public static void main(String[] args) {
+    Class<?> klasaSokratesa = Class.forName("com.github.wojtechm.refleksja.rozdzial_02.Sokrates");
+    Object sokrates = klasaSokratesa.getDeclaredConstructor().newInstance();
+    Method[] metodySokratesa = klasaSokratesa.getMethods();
+    for (Method metoda : metodySokratesa) {
+        System.out.println(metoda.getName());
+    }
+}
+```
+######*Wspominałem, że opisane wcześniej wyjątki będą ignorowane i tak też się stało (brak klauzuli **throws**).*
+
+Wykonanie tego programu skutkuje następującym wydrukiem do konsoli:
+```text
+powiedzCośMądrego
+wait
+wait
+wait
+equals
+toString
+hashCode
+getClass
+notify
+notifyAll
+```
+Wiemy już, że nasz filozof może *powiedziećCośMądrego()* oraz że odziedziczył podstawowe metody po klasie *Object*.
+Ma to sens. Wszak *prawie* wszystko w Javie jest obiektem (pozdrowienia dla prymitywów). Jest jednak jeden problem.
+Wspomniałem, że Sokrates ma dwie metody - publiczą i prywatną. Jak zapewne się domyślasz, *Sokrates.powiedzCośMądrego()*
+jest metodą publiczną. Jak więc dostać się do metod prywatnych? Z pomocą przychodzi metoda *Class.getDeclaredMethods()*.
+```jshelllanguage
+public static void main(String[] args) {
+    Class<?> klasaSokratesa = Class.forName("com.github.wojtechm.refleksja.rozdzial_02.Sokrates");
+    Object sokrates = klasaSokratesa.getDeclaredConstructor().newInstance();
+    Method[] metodySokratesa = klasaSokratesa.getDeclaredMethods(); // Zmiana z .getMethods() na .getDeclaredMethods().
+    for (Method metoda : metodySokratesa) {
+        System.out.println(metoda.getName());
+    }
+}
+```
+Drobna zmiana w kodzie i mamy nowy wynik:
+```text
+pomyślOCzymśMądrym
+powiedzCośMądrego
+```
+Różnice które od razu rzucają się w oczy. Metoda *Class.getDeclaredMethods()* zwraca tylko i wyłącznie metody, które 
+zdefiniowane zostały w danej klasie, kiedy *Class.getMethods()* udostępnia **jedynie publiczne** metody włącznie z tymi
+odziedziczonymi z interfejsów czy klasy bazowej.
