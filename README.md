@@ -69,7 +69,7 @@ public static void main(String[] args) {
     }
 }
 ```
-######*Wspominałem, że opisane wcześniej wyjątki będą ignorowane i tak też się stało (brak klauzuli **throws**).*
+##### *Wspominałem, że opisane wcześniej wyjątki będą pomijane i tak też się stało (brak klauzuli **throws**).*
 
 Wykonanie tego programu skutkuje następującym wydrukiem do konsoli:
 ```text
@@ -105,4 +105,5 @@ powiedzCośMądrego
 ```
 Różnice które od razu rzucają się w oczy. Metoda *Class.getDeclaredMethods()* zwraca tylko i wyłącznie metody, które 
 zdefiniowane zostały w danej klasie, kiedy *Class.getMethods()* udostępnia **jedynie publiczne** metody włącznie z tymi
-odziedziczonymi z interfejsów czy klasy bazowej.
+odziedziczonymi z interfejsów czy klasy bazowej. Warto zwrócić również uwagę na fakt, że żadna z tych metod nie 
+udostępnia konstruktorów.
