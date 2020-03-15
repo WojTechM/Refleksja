@@ -47,7 +47,7 @@ A skoro o omawianiu wyjątków mowa:
     2. Modyfikator dostępu - nawet jeśli parametry się zgadzają, konstruktor musi być zadeklarowany jako publiczny by
     odszukać go metodą getConstructor().
 * ***IllegalAccessException***, podobnie jak kolejne 2 wyjątki które opiszę, jest rzucany przez wywołanie
-    Constructor.newInstance(Object... initargs). IllegalAccessException zgłaszany jest w momencie, kiedy konstruktor
+    *Constructor.newInstance(Object... initargs)*. IllegalAccessException zgłaszany jest w momencie, kiedy konstruktor
     jest niedostępny (zgodnie z modyfikatorami dostępu). Jeśli czytasz ten tekst uważnie (w co niestety wątpię), to
     zauważyłeś zapewne pewien problem. Jakim cudem mogę nie mieć dostępu do konstruktora, skoro *Class.getConstructor()*
     zwraca tylko publicze konstruktory? Bardzo dobre spostrzeżenie. Fakt, nasz konstruktor z całą pewnością będzie publiczny,
@@ -107,3 +107,91 @@ Różnice które od razu rzucają się w oczy. Metoda *Class.getDeclaredMethods(
 zdefiniowane zostały w danej klasie, kiedy *Class.getMethods()* udostępnia **jedynie publiczne** metody włącznie z tymi
 odziedziczonymi z interfejsów czy klasy bazowej. Warto zwrócić również uwagę na fakt, że żadna z tych metod nie 
 udostępnia konstruktorów.
+
+Mamy już interesujące nas metody (tablica *Method[] metodySokratesa*) - czas je wywołać. Kluczem do wykonania tej operacji
+jest metoda *Method.invoke(Object obj, Object... args)*. Pierwszy parametr to obiekt na którym zostanie wywołana nasza
+metoda (w przypadku metod statycznych możemy tam wrzucić *nulla*). Parametr *args* reprezentuje argumenty które zostaną 
+wykorzystane do uruchomienia metody. Mając tę wiedzę oczywiście chcemy ustalić ile parametrów przyjmują nasze metody.
+Nowy kawałek kodu:
+```jshelllanguage
+public static void main(String[] args) {
+    Class<?> klasaSokratesa = Class.forName("com.github.wojtechm.refleksja.rozdzial_02.Sokrates");
+    Object sokrates = klasaSokratesa.getDeclaredConstructor().newInstance();
+    Method[] metodySokratesa = klasaSokratesa.getMethods();
+    for (Method metoda : metodySokratesa) {
+        System.out.printf("Metoda %s(). Parametry: %d => %s\n",
+                metoda.getName(),
+                metoda.getParameterCount(),
+                Arrays.toString(metoda.getParameterTypes()));
+    }
+
+}
+```
+I nowe wyniki:
+```text
+Metoda powiedzCośMądrego(). Parametry: 0 => []
+Metoda wait(). Parametry: 1 => [long]
+Metoda wait(). Parametry: 2 => [long, int]
+Metoda equals(). Parametry: 1 => [class java.lang.Object]
+// i kilka innych
+```
+Podmieniłem metodę *.getDeclaredMethods()* na *getMethods()* aby pokazać metody bezargumentowa, przyjmujące obiekty i 
+typy prymitywne. Jak widzisz mamy konkretnie zapisane jakich typów są oczekiwane przez metodę parametry, oraz ich ilość.
+Tutaj drobny spoiler niezbędny do pójścia do przodu => prywatna metoda *Sokrates.pomyślOCzymśMądrym()* również jest
+bezargumentowa.
+```text
+Metoda powiedzCośMądrego(). Parametry: 0 => []
+Metoda pomyślOCzymśMądrym(). Parametry: 0 => []
+```
+No to już mamy wszystko. Czas na wywołanie naszych metod.
+```jshelllanguage
+public static void main(String[] args) throws IllegalAccessException, InvocationTargetException {
+    Class<?> klasaSokratesa = Class.forName("com.github.wojtechm.refleksja.rozdzial_02.Sokrates");
+    Object sokrates = klasaSokratesa.getDeclaredConstructor().newInstance();
+    Method[] metodySokratesa = klasaSokratesa.getDeclaredMethods();
+    for (Method metoda : metodySokratesa) {
+        System.out.printf("Metoda %s().\n", metoda.getName());
+        metoda.invoke(sokrates);
+    }
+}
+```
+Jedna nowa linia, dwa nowe kontrolowane wyjątki. Pierwszy z nich to IllegalAccessException, który faktycznie pojawia się
+po uruchomieniu kodu:
+```text
+Metoda powiedzCośMądrego().
+Szczęście jest przyjemnością wolną od wyrzutów sumienia.
+Metoda pomyślOCzymśMądrym().
+Exception in thread "main" java.lang.IllegalAccessException: class com.github.wojtechm.refleksja.rozdzial_02.Podstawy cannot access a member of class com.github.wojtechm.refleksja.rozdzial_02.Sokrates with modifiers "private"
+	at java.base/jdk.internal.reflect.Reflection.newIllegalAccessException(Reflection.java:361)
+	at java.base/java.lang.reflect.AccessibleObject.checkAccess(AccessibleObject.java:591)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:558)
+	at com.github.wojtechm.refleksja.rozdzial_02.Podstawy.main(Podstawy.java:32)
+```
+Zgodnie z treścią błędu - nie możemy uruchomić prywatnej metody ot tak. Java poprzez zgłoszenie wyjątku sugeruje, że
+aktualnie próbujemy podkopać jeden z filarów programowania obiektowego w języku programowania 
+prawie całkowicie obiektowym (pozdrowienia dla prymitywów). Jesteśmy jednak oddani sprawie i poradzimy sobie z tą
+niedogodnością za pomocą metody *Method.setAccessible(boolean flag)*, która (jak wskazuje nazwa) może magicznie sprawić, 
+że metoda staje się dostępna. Zmienna *flag* oznacza bezpośrednio *"czy ograniczenia dostępu języka Java powinny być 
+zignorowane?"*.
+```jshelllanguage
+public static void main(String[] args) throws InvocationTargetException {
+    Class<?> klasaSokratesa = Class.forName("com.github.wojtechm.refleksja.rozdzial_02.Sokrates");
+    Object sokrates = klasaSokratesa.getDeclaredConstructor().newInstance();
+    Method[] metodySokratesa = klasaSokratesa.getDeclaredMethods();
+    for (Method metoda : metodySokratesa) {
+        System.out.printf("Metoda %s().\n", metoda.getName());
+        metoda.setAccessible(true);
+        metoda.invoke(sokrates);
+    }
+}
+```
+Pozostaje jeszcze *InvocationTargetException*. Podobnie jak w przypadku wywołania *Constructor.newInstance(Object... 
+initargs)* - wyjątek ten zostaje zgłoszony, gdy metoda którą uruchamiamy zgłosi wyjątek.
+
+Warto mieć tu na uwadze jeszcze jedną rzecz. Niekontrolowany wyjątek *IllegalArgumentException* może zostać zgłoszony
+przez metodę *Method.invoke(Object obj, Object... args)* jeśli spróbujemy podstawić pod zmienną *obj* obiekt, który
+nie jest instancją klasy do której nasza metoda należy. Bardziej po ludzku - jeśli mamy metodę *M* którą wyciągneliśmy
+z klasy *K*, to wywołanie *M.invoke(O)* zgłosi wyjątek, jeśli nasz obiekt *O* **nie jest** instancją klasy *K*.
+```jshelllanguage
+metodaSokratesa.invoke("Jakiś losowy string, który (rzecz jasna) nie jest instancją klasy Sokrates");
+```
