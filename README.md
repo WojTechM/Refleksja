@@ -12,8 +12,8 @@ o tym, które metody uruchomić. W praktyce będzie to chociażby biblioteka tes
 aplikację w poszukiwaniu metod o adnotacji @Test, a następnie takowe metody uruchamiają.
 
 ## 2. Wprowadzenie do refleksji w Javie
-Zaczniemy od klas, metod i pól. Java pozwala nam wyszukiwać klasy, tworzyć ich instancje, ustalać wartości pól (w tym
-tych prywatnych) i finalnie uruchamiać metody. Posługując się refleksją nie musimy znać konkretnych nazw. Innymi słowy -
+Zaczniemy od klas, metod i pól. Java pozwala nam wyszukiwać klasy, tworzyć ich instancje, odczytować wartości pól 
+i uruchamiać metody. Posługując się refleksją nie musimy znać konkretnych nazw. Innymi słowy -
 mając obiekt posiadający 2 metody których nazw nie znam, jestem w stanie wyciągnąć informacje o każdej z nich (w tym 
 ich nazwy).
 
@@ -194,4 +194,52 @@ nie jest instancją klasy do której nasza metoda należy. Bardziej po ludzku - 
 z klasy *K*, to wywołanie *M.invoke(O)* zgłosi wyjątek, jeśli nasz obiekt *O* **nie jest** instancją klasy *K*.
 ```jshelllanguage
 metodaSokratesa.invoke("Jakiś losowy string, który (rzecz jasna) nie jest instancją klasy Sokrates");
+```
+
+### 2.3. Praca z polami.
+##### *Poprzedni podrozdział odrobinę się rozciągnął. Tym razem będzie krótko... chyba. Mam nadzieję...*
+Zacznijmy od uproszczenia naszego kodu. Na ten moment nie będziemy zajmować się metodami, więc uproszczę kod z poprzedniej
+sekcji.
+```jshelllanguage
+public static void main(String[] args) {
+    Class<?> klasaSokratesa = Class.forName("com.github.wojtechm.refleksja.rozdzial_02.Sokrates");
+    Object sokrates = klasaSokratesa.getDeclaredConstructor().newInstance();
+}
+```
+Podobnie jak w przypadku wyciągania metod, dobieranie się do informacji o polach można zrobić na dwa sposoby:
+* *Class.getFields()* - zwraca tablicę pól publicznych włącznie z tymi odziedziczonymi po klasie bazowej.
+* *Class.getDeclaredFields()* - zwraca tablicę wszystkich pól zdefiniowanych w danej klasie (ignorując pola klasy bazowej).
+Nowy kod:
+```jshelllanguage
+public static void main(String[] args) {
+    Class<?> klasaSokratesa = Class.forName("com.github.wojtechm.refleksja.rozdzial_02.Sokrates");
+    Object sokrates = klasaSokratesa.getDeclaredConstructor().newInstance();
+    for (Field pole : klasaSokratesa.getDeclaredFields()) {
+        System.out.println(pole.toGenericString());
+    }
+}
+```
+Nowe wyniki:
+```text
+public static final java.lang.String com.github.wojtechm.refleksja.rozdzial_02.Sokrates.EPOKA
+public final java.lang.String com.github.wojtechm.refleksja.rozdzial_02.Sokrates.zawód
+private final java.lang.String com.github.wojtechm.refleksja.rozdzial_02.Sokrates.ulubionyCytat
+```
+Aby uzyskać wartości danych pól wykorzystujemy metodę *Field.get(Object obj)*. Zmienna *obj* to wskaźnik do obiektu
+którego pola nas interesują; jeśli pole jest statyczne, *obj* może przyjąć wartość *null*. Podobnie jak w przypadku
+metod, chcemy wywołać *.setAccessible()*, aby móc grzebać w prywatnych rzeczach Sokratesa.
+```jshelllanguage
+public static void main(String[] args) {
+    Class<?> klasaSokratesa = Class.forName("com.github.wojtechm.refleksja.rozdzial_02.Sokrates");
+    Object sokrates = klasaSokratesa.getDeclaredConstructor().newInstance();
+    for (Field pole : klasaSokratesa.getDeclaredFields()) {
+        pole.setAccessible(true);
+        System.out.printf("Pole '%s' ma wartość '%s'\n", pole.getName(), pole.get(sokrates));
+    }
+}
+```
+```text
+Pole 'EPOKA' ma wartość 'Starożytność.'
+Pole 'zawód' ma wartość 'Filozof'
+Pole 'ulubionyCytat' ma wartość 'Strzeż się ludzi, którzy są pewni tego, że mają rację.'
 ```
