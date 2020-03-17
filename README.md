@@ -20,7 +20,40 @@ ich nazwy).
 Jak zrobić to w praktyce? Mamy klasę "Sokrates" w pakiecie "com.github.wojtechm.refleksja.rozdzial_02". Sokrates ma 2
 metody - publiczną i prywatną. Metody te nie są statyczne, więc aby je wywołać, musimy stworzyć nową instancję klasy
 Sokrates.
-### 2.1. Tworzenie nowej instancji
+
+### 2.1. Klasa *Class* - wrota do refleksji.
+Punktem wejścia do świata refleksji będzie klasa *java.lang.Class<T\>*. Jest to specjalny kawałek kodu reprezentujący
+klasy i interfejsy w aplikacji Javowej. Przechowuje ona wszystkie niezbędne nam informacje i udostępnia je poprzez
+bardzo sympatyczne, choć rozbudowane API.
+
+Zgodnie z wprowadzeniem - mamy klasę *Sokrates* i chcemy stworzyć jej instancję. Aby to zrobić będziemy potrzebować
+referencji do klasy *Class* reprezentującej klasę *Sokrates*. Możemy zrobić to na dwa sposoby.
+1. Bezpieczny: jeszcze na poziomie kompilacji wiemy, że klasa ta istnieje i możemy się do niej odnieść bezpośrednio.
+    ```jshelllanguage
+    public static void main(String[] args) {
+        Class<?> klasaSokratesa = Sokrates.class;
+    }
+    ```
+2. Niebezpieczny: klasy szukamy w trakcie działania aplikacji, co może skutkować niechcianym wyjątkiem.
+    ```jshelllanguage
+    public static void main(String[] args) throws ClassNotFoundException {
+        Class<?> klasaSokratesa = Class.forName("com.github.wojtechm.refleksja.rozdzial_02.Sokrates");
+    }
+    ```
+    ***ClassNotFoundException*** jest wyjątkiem rzucanym przez metodę *Class.forName(String className)*. Niezbyt odkrywczym będzie
+    stwierdzenie, że zostaje on rzucony gdy podanej klasy nie udało się namierzyć. Podstawowym błędem popełnianym przez 
+    ludzi podejmujących się walki z refleksją, jest podanie jedynie nazwy klasy, kiedy (zgodnie z dokumentacją) powinno
+    się dostarczyć w pełni kwalifikowaną nazwę (ang. FQN), a więc nazwę klasy poprzedzoną jej pakietem.<br/>
+    ```
+    Parameters: 
+    className - the fully qualified name of the desired class.
+    ```
+   
+Jeśli mamy ten komfort i możemy posługiwać się pierwszym sposobem, to powinniśmy z tego korzystać. W ramach tego tekstu
+planuję jednak używać tej dłuższej (niebezpiecznej) wersji, żebyś miał okazję napatrzeć się na tę składnię.
+
+### 2.2. Tworzenie nowej instancji.
+Mamy już naszą klasę - zmienna *klasaSokratesa*. Czas na tworzenie nowej instancji. Oto jak to robimy:
 ```jshelllanguage
 public static void main(String[] args) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
     Class<?> klasaSokratesa = Class.forName("com.github.wojtechm.refleksja.rozdzial_02.Sokrates");
@@ -28,23 +61,15 @@ public static void main(String[] args) throws ClassNotFoundException, NoSuchMeth
 }
 ```
 Jak widzisz w przykładzie powyżej, w naprawdę niewielkim kawałku kodu operującym refleksją, naprawdę wiele rzeczy może
-pójść nie po naszej myśli. 2 linijki kodu i 5 kontrolowanych wyjątków. Tym tytułem od teraz wyjątki które już zostały 
-już opisane, będą przeze mnie ignorowane, i nie będą przewijać się przez przykłady (w imię ich czytelności). 
+pójść nie po naszej myśli. 1 nowa linijka kodu i 4 nowe kontrolowane wyjątki. Tym tytułem od teraz wyjątki które zostały 
+już opisane, będą przeze mnie pomijane, i nie będą przewijać się przez przykłady (w imię ich czytelności). 
 A skoro o omawianiu wyjątków mowa:
 
-* ***ClassNotFoundException*** jest wyjątkiem rzucanym przez metodę Class.forName(String className). Niezbyt odkrywczym będzie
-    stwierdzenie, że zostaje on rzucony gdy podanej klasy nie udało się namierzyć. Podstawowym błędem popełnianym przez 
-    ludzi podejmujących się walki z refleksją, jest podanie jedynie nazwy klasy, kiedy (zgodnie z dokumentacją) powinno
-    się dostarczyć w pełni kwalifikowaną nazwę (ang. FQN), a więc nazwę klasy poprzedzoną jej pakietem.<br/>
-     ```
-    Parameters: 
-    className - the fully qualified name of the desired class.
-    ```
 * ***NoSuchMethodException*** rzucany jest przez *Class.getConstructor(Class<?>... parameterTypes)*. Tutaj coś może pójść
     nie tak na 2 sposoby.
-    1. Niezgodność parametrów - *getConstructor()* jest metodą o zmiennej liczbie argumentów (varargs). W przykładzie 
+    * Niezgodność parametrów - *getConstructor()* jest metodą o zmiennej liczbie argumentów (varargs). W przykładzie 
     nie podałem żadnych parametrów, a więc poszukuję bezparametrowego konstruktora. Nie ma takiego? No to wyjątek.
-    2. Modyfikator dostępu - nawet jeśli parametry się zgadzają, konstruktor musi być zadeklarowany jako publiczny by
+    * Modyfikator dostępu - nawet jeśli parametry się zgadzają, konstruktor musi być zadeklarowany jako publiczny by
     odszukać go metodą getConstructor().
 * ***IllegalAccessException***, podobnie jak kolejne 2 wyjątki które opiszę, jest rzucany przez wywołanie
     *Constructor.newInstance(Object... initargs)*. IllegalAccessException zgłaszany jest w momencie, kiedy konstruktor
@@ -56,7 +81,7 @@ A skoro o omawianiu wyjątków mowa:
 * ***InvocationTargetException*** zgłaszany jest, gdy konstruktor który wywołujemy rzuci wyjątek.
 * ***InstantiationException*** zgłaszany jest, gdy próbujemy stworzyć instancję klasy abstrakcyjnej.
 
-### 2.2. Odnoszenie się do metod, oraz ich wywoływanie.
+### 2.3. Odnoszenie się do metod, oraz ich wywoływanie.
 Mamy już klasę oraz jej instancję. Kolejnym krokiem jest wyciągnięcie informacji o metodach. Najbardziej oczywistym będzie
 użycie metody *Class.getMethods()* na naszej klasie Sokratesa.
 ```jshelllanguage
@@ -196,7 +221,7 @@ z klasy *K*, to wywołanie *M.invoke(O)* zgłosi wyjątek, jeśli nasz obiekt *O
 metodaSokratesa.invoke("Jakiś losowy string, który (rzecz jasna) nie jest instancją klasy Sokrates");
 ```
 
-### 2.3. Praca z polami.
+### 2.4. Praca z polami.
 ##### *Poprzedni podrozdział odrobinę się rozciągnął. Tym razem będzie krótko... chyba. Mam nadzieję...*
 Zacznijmy od uproszczenia naszego kodu. Na ten moment nie będziemy zajmować się metodami, więc uproszczę kod z poprzedniej
 sekcji.
@@ -244,7 +269,7 @@ Pole 'zawód' ma wartość 'Filozof'
 Pole 'ulubionyCytat' ma wartość 'Strzeż się ludzi, którzy są pewni tego, że mają rację.'
 ```
 
-### 2.4. Podsumowanie i źródła
+### 2.5. Podsumowanie i źródła
 W tym rozdziale poznałeś podstawowe techniki tworzenia i inspekcji obiektów za pomocą refleksji. Oczywiście poznałeś
 również mój ulubiony cytat Sokratesa, w imię którego bardzo chciałbym, żebyś postanowił przekonać się o tym, czy mam rację.
 
