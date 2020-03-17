@@ -29,12 +29,15 @@ bardzo sympatyczne, choć rozbudowane API.
 Zgodnie z wprowadzeniem - mamy klasę *Sokrates* i chcemy stworzyć jej instancję. Aby to zrobić będziemy potrzebować
 referencji do klasy *Class* reprezentującej klasę *Sokrates*. Możemy zrobić to na dwa sposoby.
 1. Bezpieczny: jeszcze na poziomie kompilacji wiemy, że klasa ta istnieje i możemy się do niej odnieść bezpośrednio.
+Dodatkowo możemy zdefiniować konkretny typ naszej klasy. Przekonasz się o tym że to przydatne pod koniec następnego 
+podrozdziału.
     ```jshelllanguage
     public static void main(String[] args) {
-        Class<?> klasaSokratesa = Sokrates.class;
+        Class<Sokrates> klasaSokratesa = Sokrates.class;
     }
     ```
-2. Niebezpieczny: klasy szukamy w trakcie działania aplikacji, co może skutkować niechcianym wyjątkiem.
+2. Niebezpieczny: klasy szukamy w trakcie działania aplikacji, co może skutkować niechcianym wyjątkiem. Dodatkowo nie
+definiujemy typu generycznego.
     ```jshelllanguage
     public static void main(String[] args) throws ClassNotFoundException {
         Class<?> klasaSokratesa = Class.forName("com.github.wojtechm.refleksja.rozdzial_02.Sokrates");
@@ -70,16 +73,35 @@ A skoro o omawianiu wyjątków mowa:
     * Niezgodność parametrów - *getConstructor()* jest metodą o zmiennej liczbie argumentów (varargs). W przykładzie 
     nie podałem żadnych parametrów, a więc poszukuję bezparametrowego konstruktora. Nie ma takiego? No to wyjątek.
     * Modyfikator dostępu - nawet jeśli parametry się zgadzają, konstruktor musi być zadeklarowany jako publiczny by
-    odszukać go metodą getConstructor().
+    odszukać go metodą *getConstructor()*.
 * ***IllegalAccessException***, podobnie jak kolejne 2 wyjątki które opiszę, jest rzucany przez wywołanie
     *Constructor.newInstance(Object... initargs)*. IllegalAccessException zgłaszany jest w momencie, kiedy konstruktor
     jest niedostępny (zgodnie z modyfikatorami dostępu). Jeśli czytasz ten tekst uważnie (w co niestety wątpię), to
     zauważyłeś zapewne pewien problem. Jakim cudem mogę nie mieć dostępu do konstruktora, skoro *Class.getConstructor()*
     zwraca tylko publicze konstruktory? Bardzo dobre spostrzeżenie. Fakt, nasz konstruktor z całą pewnością będzie publiczny,
-    ale nie zapominajmy o tym, że istnieją inne sposoby na uzyskanie referencji do konstruktorów niepublicznych.
+    ale nie zapominajmy o tym, że istnieją sposoby na uzyskanie referencji do konstruktorów niepublicznych.
     Dokładniej opiszę ten precedens w jednym z późniejszych rozdziałów.
 * ***InvocationTargetException*** zgłaszany jest, gdy konstruktor który wywołujemy rzuci wyjątek.
 * ***InstantiationException*** zgłaszany jest, gdy próbujemy stworzyć instancję klasy abstrakcyjnej.
+
+Jeśli żaden wyjątek nie został zgłoszony, to otrzymujemy nowy obiekt, który jest instancją klasy Sokrates.
+
+No i wszystko super, ale dlaczego *sokrates* jest zmienną typu *Object*, a nie *Sokrates*? Odpowiedź jest odrobinę skomplikowana. 
+
+Szybkie i niedokładne wprowadzenie do generyków: w przykładzie zmienna *klasaSokratesa* jest typu *Class<?\>*. *Wildcard*
+(przedstawiany znakiem zapytania) oznacza "nieznane" - typ klasy *klasaSokratesa* jest nieznany. Mógłby to być *String*,
+*Sokrates*, czy nawet *ArrayIndexOutOfBoundsException* - nie zagwarantowaliśmy typu... więc dlaczego *Object*?
+
+Mamy tu do czynienia z 
+uproszczeniem - skoro w Javie prawie wszystko jest obiektem (pozdrowienia dla prymitywów), to i tu będziemy mieć do 
+czynienia z czymś, co dziedziczy po *Object*. Gdybyśmy mieli gwarancję typu, nie byłoby problemu z przypisaniem 
+*sokratesa* do zmiennej typu *Sokrates*. Oczywiście da się to zrobić -> przykład poniżej.
+```jshelllanguage
+public static void main(String[] args) {
+    Class<Sokrates> klasaSokratesa = Sokrates.class;
+    Sokrates sokrates = klasaSokratesa.getDeclaredConstructor().newInstance();
+}
+```
 
 ### 2.3. Odnoszenie się do metod, oraz ich wywoływanie.
 Mamy już klasę oraz jej instancję. Kolejnym krokiem jest wyciągnięcie informacji o metodach. Najbardziej oczywistym będzie
