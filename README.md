@@ -227,7 +227,7 @@ private final java.lang.String com.github.wojtechm.refleksja.rozdzial_02.Sokrate
 ```
 Aby uzyskać wartości danych pól wykorzystujemy metodę *Field.get(Object obj)*. Zmienna *obj* to wskaźnik do obiektu
 którego pola nas interesują; jeśli pole jest statyczne, *obj* może przyjąć wartość *null*. Podobnie jak w przypadku
-metod, chcemy wywołać *.setAccessible()*, aby móc grzebać w prywatnych rzeczach Sokratesa.
+metod, chcemy wywołać *Field.setAccessible(boolean flag)*, aby móc grzebać w prywatnych rzeczach Sokratesa.
 ```jshelllanguage
 public static void main(String[] args) {
     Class<?> klasaSokratesa = Class.forName("com.github.wojtechm.refleksja.rozdzial_02.Sokrates");
@@ -243,3 +243,12 @@ Pole 'EPOKA' ma wartość 'Starożytność.'
 Pole 'zawód' ma wartość 'Filozof'
 Pole 'ulubionyCytat' ma wartość 'Strzeż się ludzi, którzy są pewni tego, że mają rację.'
 ```
+
+### 2.4. Podsumowanie i źródła
+W tym rozdziale poznałeś podstawowe techniki tworzenia i inspekcji obiektów za pomocą refleksji. Oczywiście poznałeś
+również mój ulubiony cytat Sokratesa, w imię którego bardzo chciałbym, żebyś postanowił przekonać się o tym, czy mam rację.
+
+Zachęcam Cię do zrobienia dwóch rzeczy:
+1. Napisz sobie prostą klaskę podobną do Sokratesa i postaraj się wyciągnąć z niej informacje. Eksperymentuj!
+2. Zerknij do dokumentacji - podaję nazwy klas i metod dla łatwiejszego ich namierzenia. Klasy które wykorzystaliśmy
+do naruszenia przastrzeni osobistej Sokratesa znajdują się w [pakiecie java.lang.reflect](https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/package-summary.html).
