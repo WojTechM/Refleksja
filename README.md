@@ -6,15 +6,15 @@ Staram się, by notatki te były *Junior Software Developer friendly*, więc zac
 informacji, by później, krok po kroku, dojść do tych faktycznie ciekawych. :)
 
 ## 1. Mechanizm Refleksji
-Mechanizm refleksji to proces, dzięki któremu program komupterowy może podglądać, analizować i modyfikować kod źródłowy w
-trakcie działania aplikacji. Wyobraź sobie aplikację która przygląda się twojemu kodowi i w trakcie działania decyduje
+Mechanizm refleksji to proces, dzięki któremu program komputerowy może podglądać, analizować i modyfikować kod źródłowy w
+trakcie działania aplikacji. Wyobraź sobie aplikację, która przygląda się twojemu kodowi i w trakcie działania decyduje
 o tym, które metody uruchomić. W praktyce będzie to chociażby biblioteka testowa (np. TestNG lub JUnit) - przeglądają 
 aplikację w poszukiwaniu metod o adnotacji @Test, a następnie takowe metody uruchamiają.
 
 ## 2. Wprowadzenie do refleksji w Javie
-Zaczniemy od klas, metod i pól. Java pozwala nam wyszukiwać klasy, tworzyć ich instancje, odczytować wartości pól 
-i uruchamiać metody. Posługując się refleksją nie musimy znać konkretnych nazw. Innymi słowy -
-mając obiekt posiadający 2 metody których nazw nie znam, jestem w stanie wyciągnąć informacje o każdej z nich (w tym 
+Zaczniemy od klas, metod i pól. Java pozwala nam wyszukiwać klasy, tworzyć ich instancje, odczytywać wartości pól 
+i uruchamiać metody. Posługując się refleksją nie musimy znać konkretnych nazw. Innymi słowy:
+mając obiekt posiadający 2 metody, których nazw nie znam, jestem w stanie wyciągnąć informacje o każdej z nich (w tym 
 ich nazwy).
 
 Jak zrobić to w praktyce? Mamy klasę "Sokrates" w pakiecie "com.github.wojtechm.refleksja.rozdzial_02". Sokrates ma 2
@@ -26,10 +26,10 @@ Punktem wejścia do świata refleksji będzie klasa *java.lang.Class<T\>*. Jest 
 klasy i interfejsy w aplikacji Javowej. Przechowuje ona wszystkie niezbędne nam informacje i udostępnia je poprzez
 bardzo sympatyczne, choć rozbudowane API.
 
-Zgodnie z wprowadzeniem - mamy klasę *Sokrates* i chcemy stworzyć jej instancję. Aby to zrobić będziemy potrzebować
+Zgodnie z wprowadzeniem: mamy klasę *Sokrates* i chcemy stworzyć jej instancję. Aby to zrobić, będziemy potrzebować
 referencji do klasy *Class* reprezentującej klasę *Sokrates*. Możemy zrobić to na dwa sposoby.
 1. Bezpieczny: jeszcze na poziomie kompilacji wiemy, że klasa ta istnieje i możemy się do niej odnieść bezpośrednio.
-Dodatkowo możemy zdefiniować konkretny typ naszej klasy. Przekonasz się o tym że to przydatne pod koniec następnego 
+Dodatkowo możemy zdefiniować konkretny typ naszej klasy. Przekonasz się o tym, że to przydatne pod koniec następnego 
 podrozdziału.
     ```jshelllanguage
     public static void main(String[] args) {
@@ -43,8 +43,8 @@ definiujemy typu generycznego.
         Class<?> klasaSokratesa = Class.forName("com.github.wojtechm.refleksja.rozdzial_02.Sokrates");
     }
     ```
-    ***ClassNotFoundException*** jest wyjątkiem rzucanym przez metodę *Class.forName(String className)*. Niezbyt odkrywczym będzie
-    stwierdzenie, że zostaje on rzucony gdy podanej klasy nie udało się namierzyć. Podstawowym błędem popełnianym przez 
+    ***ClassNotFoundException*** jest wyjątkiem rzucanym przez metodę *Class.forName(String className)*. Niezbyt odkrywcze będzie
+    stwierdzenie, że zostaje on rzucony, gdy podanej klasy nie udało się namierzyć. Podstawowym błędem popełnianym przez 
     ludzi podejmujących się walki z refleksją, jest podanie jedynie nazwy klasy, kiedy (zgodnie z dokumentacją) powinno
     się dostarczyć w pełni kwalifikowaną nazwę (ang. FQN), a więc nazwę klasy poprzedzoną jej pakietem.<br/>
     ```
@@ -64,8 +64,8 @@ public static void main(String[] args) throws ClassNotFoundException, NoSuchMeth
 }
 ```
 Jak widzisz w przykładzie powyżej, w naprawdę niewielkim kawałku kodu operującym refleksją, naprawdę wiele rzeczy może
-pójść nie po naszej myśli. 1 nowa linijka kodu i 4 nowe kontrolowane wyjątki. Tym tytułem od teraz wyjątki które zostały 
-już opisane, będą przeze mnie pomijane, i nie będą przewijać się przez przykłady (w imię ich czytelności). 
+pójść nie po naszej myśli. 1 nowa linijka kodu i 4 nowe kontrolowane wyjątki. Tym tytułem od teraz wyjątki, które zostały 
+już opisane, będą przeze mnie pomijane i nie będą przewijać się przez przykłady (w imię ich czytelności). 
 A skoro o omawianiu wyjątków mowa:
 
 * ***NoSuchMethodException*** rzucany jest przez *Class.getConstructor(Class<?>... parameterTypes)*. Tutaj coś może pójść
@@ -78,10 +78,10 @@ A skoro o omawianiu wyjątków mowa:
     *Constructor.newInstance(Object... initargs)*. IllegalAccessException zgłaszany jest w momencie, kiedy konstruktor
     jest niedostępny (zgodnie z modyfikatorami dostępu). Jeśli czytasz ten tekst uważnie (w co niestety wątpię), to
     zauważyłeś zapewne pewien problem. Jakim cudem mogę nie mieć dostępu do konstruktora, skoro *Class.getConstructor()*
-    zwraca tylko publicze konstruktory? Bardzo dobre spostrzeżenie. Fakt, nasz konstruktor z całą pewnością będzie publiczny,
+    zwraca tylko publiczne konstruktory? Bardzo dobre spostrzeżenie. Fakt, nasz konstruktor z całą pewnością będzie publiczny,
     ale nie zapominajmy o tym, że istnieją sposoby na uzyskanie referencji do konstruktorów niepublicznych.
     Dokładniej opiszę ten precedens w jednym z późniejszych rozdziałów.
-* ***InvocationTargetException*** zgłaszany jest, gdy konstruktor który wywołujemy rzuci wyjątek.
+* ***InvocationTargetException*** zgłaszany jest, gdy konstruktor który wywołujemy zgłosi wyjątek.
 * ***InstantiationException*** zgłaszany jest, gdy próbujemy stworzyć instancję klasy abstrakcyjnej.
 
 Jeśli żaden wyjątek nie został zgłoszony, to otrzymujemy nowy obiekt, który jest instancją klasy Sokrates.
@@ -103,8 +103,8 @@ public static void main(String[] args) {
 }
 ```
 
-### 2.3. Odnoszenie się do metod, oraz ich wywoływanie.
-Mamy już klasę oraz jej instancję. Kolejnym krokiem jest wyciągnięcie informacji o metodach. Najbardziej oczywistym będzie
+### 2.3. Odnoszenie się do metod oraz ich wywoływanie.
+Mamy już klasę oraz jej instancję. Kolejnym krokiem jest wyciągnięcie informacji o metodach. Najbardziej oczywiste będzie
 użycie metody *Class.getMethods()* na naszej klasie Sokratesa.
 ```jshelllanguage
 public static void main(String[] args) {
@@ -157,7 +157,7 @@ udostępnia konstruktorów.
 
 Mamy już interesujące nas metody (tablica *Method[] metodySokratesa*) - czas je wywołać. Kluczem do wykonania tej operacji
 jest metoda *Method.invoke(Object obj, Object... args)*. Pierwszy parametr to obiekt na którym zostanie wywołana nasza
-metoda (w przypadku metod statycznych możemy tam wrzucić *nulla*). Parametr *args* reprezentuje argumenty które zostaną 
+metoda (w przypadku metod statycznych możemy tam wrzucić *nulla*). Parametr *args* reprezentuje argumenty, które zostaną 
 wykorzystane do uruchomienia metody. Mając tę wiedzę oczywiście chcemy ustalić ile parametrów przyjmują nasze metody.
 Nowy kawałek kodu:
 ```jshelllanguage
@@ -182,8 +182,8 @@ Metoda wait(). Parametry: 2 => [long, int]
 Metoda equals(). Parametry: 1 => [class java.lang.Object]
 // i kilka innych
 ```
-Podmieniłem metodę *.getDeclaredMethods()* na *getMethods()* aby pokazać metody bezargumentowa, przyjmujące obiekty i 
-typy prymitywne. Jak widzisz mamy konkretnie zapisane jakich typów są oczekiwane przez metodę parametry, oraz ich ilość.
+Podmieniłem metodę *.getDeclaredMethods()* na *getMethods()* aby pokazać Ci metody: bezargumentową, przyjmującą obiekt i 
+i przyujmującą typy prymitywne. Jak widzisz mamy konkretnie zapisane, jakich typów oraz ile parametrów oczekuje metoda.
 Tutaj drobny spoiler niezbędny do pójścia do przodu => prywatna metoda *Sokrates.pomyślOCzymśMądrym()* również jest
 bezargumentowa.
 ```text
@@ -237,7 +237,7 @@ initargs)* - wyjątek ten zostaje zgłoszony, gdy metoda którą uruchamiamy zg�
 
 Warto mieć tu na uwadze jeszcze jedną rzecz. Niekontrolowany wyjątek *IllegalArgumentException* może zostać zgłoszony
 przez metodę *Method.invoke(Object obj, Object... args)* jeśli spróbujemy podstawić pod zmienną *obj* obiekt, który
-nie jest instancją klasy do której nasza metoda należy. Bardziej po ludzku - jeśli mamy metodę *M* którą wyciągneliśmy
+nie jest instancją klasy, do której nasza metoda należy. Bardziej po ludzku - jeśli mamy metodę *M* którą wyciągneliśmy
 z klasy *K*, to wywołanie *M.invoke(O)* zgłosi wyjątek, jeśli nasz obiekt *O* **nie jest** instancją klasy *K*.
 ```jshelllanguage
 metodaSokratesa.invoke("Jakiś losowy string, który (rzecz jasna) nie jest instancją klasy Sokrates");
@@ -293,7 +293,7 @@ Pole 'ulubionyCytat' ma wartość 'Strzeż się ludzi, którzy są pewni tego, �
 
 ### 2.5. Podsumowanie i źródła
 W tym rozdziale poznałeś podstawowe techniki tworzenia i inspekcji obiektów za pomocą refleksji. Oczywiście poznałeś
-również mój ulubiony cytat Sokratesa, w imię którego bardzo chciałbym, żebyś postanowił przekonać się o tym, czy mam rację.
+również mój ulubiony cytat Sokratesa, w którego imię bardzo chciałbym, żebyś postanowił przekonać się o tym, czy mam rację.
 
 Zachęcam Cię do zrobienia dwóch rzeczy:
 1. Napisz sobie prostą klaskę podobną do Sokratesa i postaraj się wyciągnąć z niej informacje. Eksperymentuj!
