@@ -182,8 +182,7 @@ Metoda wait(). Parametry: 2 => [long, int]
 Metoda equals(). Parametry: 1 => [class java.lang.Object]
 // i kilka innych
 ```
-Podmieniłem metodę *.getDeclaredMethods()* na *getMethods()* aby pokazać Ci metody: bezargumentową, przyjmującą obiekt i 
-i przyujmującą typy prymitywne. Jak widzisz mamy konkretnie zapisane, jakich typów oraz ile parametrów oczekuje metoda.
+Podmieniłem metodę *.getDeclaredMethods()* na *getMethods()* aby pokazać Ci metody: bezargumentową, przyjmującą obiekt i przyjmującą typy prymitywne. Jak widzisz mamy konkretnie zapisane, jakich typów oraz ile parametrów oczekuje metoda.
 Tutaj drobny spoiler niezbędny do pójścia do przodu => prywatna metoda *Sokrates.pomyślOCzymśMądrym()* również jest
 bezargumentowa.
 ```text
